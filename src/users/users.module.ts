@@ -7,13 +7,17 @@ import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([User]),   
-  JwtModule.register({
-    secret: 'SECRET_KEY', 
-    signOptions: { expiresIn: '1h' },
-  }),],
+  imports: [
+    SequelizeModule.forFeature([User]),
+    JwtModule.register({
+      secret: 'SECRET_KEY',
+      signOptions: { expiresIn: '1h' },
+    }),
+    EmailModule,
+  ],
   controllers: [UsersController],
   providers: [UsersService, AuthService, LocalStrategy, JwtStrategy],
   exports: [UsersService, AuthService],

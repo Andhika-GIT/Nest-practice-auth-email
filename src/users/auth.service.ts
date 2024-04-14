@@ -6,17 +6,19 @@ import { CreateUserDto } from './dto/create-user';
 import { SigninDto } from './dto/signIn-user';
 import { JwtService } from '@nestjs/jwt';
 import { User } from './entities/user.entity';
+import { EmailService } from 'src/email/email.service';
 
 const scrypt = promisify(_scrypt);
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService, 
-    private jwtService: JwtService
-    ) {}
+    private usersService: UsersService,
+    private jwtService: JwtService,
+    private emailService: EmailService,
+  ) {}
 
-  async validateUser(user: SigninDto){
+  async validateUser(user: SigninDto) {
     const findUser = await this.usersService.findUser(user.email);
 
     // see if user give valid email
@@ -35,7 +37,7 @@ export class AuthService {
       throw new BadRequestException('invalid credential');
     }
 
-    return findUser
+    return findUser;
   }
 
   async signUp(user: CreateUserDto) {
@@ -66,19 +68,37 @@ export class AuthService {
     const token = this.jwtService.sign(payload);
 
     return {
-        status: 201,
-        token : token
-    }
+      status: 201,
+      token: token,
+    };
   }
 
   async signIn(user: User) {
-   
     const payload = { email: user.email, role: user.role };
     const token = this.jwtService.sign(payload);
 
     return {
-        status: 201,
-        token : token
+      status: 201,
+      token: token,
+    };
+  }
+
+  async forgotPassword(email: string) {
+    const findUser = await this.usersService.findUser(email);
+
+    // see if user give valid email
+    if (!findUser) {
+      throw new BadRequestException('email not found');
     }
+
+    const token = this.jwtService.sign({ email: findUser.email });
+    const ResetURL = `localhost:3000/users/resetPassword?token=${token}`;
+
+    return this.emailService.sendResetPassword({
+      recipientEmail: findUser.email,
+      recipientName: findUser.name,
+      subject: 'RESET PASSWORD',
+      URL: ResetURL,
+    });
   }
 }

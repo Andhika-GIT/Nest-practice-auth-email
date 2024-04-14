@@ -10,14 +10,13 @@ import {
   Query,
   Request,
   UseGuards,
-  ValidationPipe
+  ValidationPipe,
 } from '@nestjs/common';
 import { Serialize } from 'src/interceptors/serialize.interceptor';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user';
 import { UpdateUserDto } from './dto/update-user';
 import { UserDto } from './dto/user';
-import { User } from './entities/user.entity';
 import { LocalGuard } from './guards/local.guard';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -26,29 +25,37 @@ import { JwtGuard } from './guards/jwt.guard';
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly authService: AuthService  ) {}
+    private readonly authService: AuthService,
+  ) {}
 
+  // --AUTH --
+  @Post('signin')
+  @UseGuards(LocalGuard)
+  signin(@Request() req) {
+    return this.authService.signIn(req.user);
+  }
 
-   // --AUTH --
-   @Post('signin')
-   @UseGuards(LocalGuard)
-    signin(@Request() req) {
-     return this.authService.signIn(req.user)
-   }
-
-
-   @Post('signup')
-    signup(@Body() body: CreateUserDto) {
+  @Post('signup')
+  signup(@Body() body: CreateUserDto) {
     return this.authService.signUp(body);
-   }
+  }
 
-   @Get('info')
-   @UseGuards(JwtGuard)
-   getInfo(@Request() req){
-    return req.user
-   }
- 
-  
+  @Get('info')
+  @UseGuards(JwtGuard)
+  getInfo(@Request() req) {
+    return req.user;
+  }
+
+  @Post('forgotPassword')
+  forgotPassword(@Body() body: { email: string }) {
+    return this.authService.forgotPassword(body.email);
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('resetPassword')
+  resetPassword(@Body() body: { password: string }) {
+    return `new password is ${body.password}`;
+  }
 
   @Serialize(UserDto)
   @Get() // GET /users
@@ -82,7 +89,4 @@ export class UsersController {
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.delete(id);
   }
-
-
- 
 }

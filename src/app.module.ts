@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { databaseConfig } from './db/database.config';
 import { UsersModule } from './users/users.module';
+import { EmailModule } from './email/email.module';
 
 
 @Module({
@@ -15,6 +16,7 @@ import { UsersModule } from './users/users.module';
       isGlobal: true,
     }),
     SequelizeModule.forRoot(databaseConfig),
+    EmailModule,
   
   ],
   controllers: [AppController],
